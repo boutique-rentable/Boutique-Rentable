@@ -1,29 +1,140 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
-	<head>
-		<meta charset="utf-8">
-		<title>Ma première page</title>
-		<link rel="stylesheet" href="style.css">
-	</head>
-	<body>
-		<h1>Bienvenue sur ma page</h1>
-		<h2 class="sous_titre">Présentation</h2>
-
-		<div id="presentation">
-			<p>Je m'appelle <strong>Victor</strong> et je découvre le <span class="mot_cle">HTML</span>.
-			Pour en savoir plus, visitez
-			<a href="http://www.wikipedia.org">Wikipédia</a>.</p>
-			<img src="mon_image.jpg" alt="Photo d'un avion dans le ciel"/>
-		</div>
-
-		<h2 class="sous_titre">Contactez-moi</h2>
-
-		<div id="contact">
-			<form>
-				<p>Votre nom : <input type="text"/></p>
-				<p>Je souhaite recevoir des nouvelles <input type="checkbox"/></p>
-				<button>Envoyer</button>
-			</form>
-		</div>
-	</body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Révise les grandes métropoles du monde</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f1ec;--fg:#1c2a33;--mut:#5d6b73;--card:#fff;--line:#d6d2c8;--ok:#2f8f5b;--ko:#c2453a;--acc:#e08a1e;--sea:#1d3b4f;--land:#d3dec0;
+padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101a21;--fg:#e8ece9;--mut:#9aa8af;--card:#18262f;--line:#2b3c47;--sea:#0b1f2c;--land:#617a5a}}
+:root[data-theme="dark"]{--bg:#101a21;--fg:#e8ece9;--mut:#9aa8af;--card:#18262f;--line:#2b3c47;--sea:#0b1f2c;--land:#617a5a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+main{max-width:1000px;margin:0 auto;padding:16px}
+h1{font-size:clamp(1.5rem,4vw,2.1rem);font-weight:800;margin:4px 0 12px;letter-spacing:-.02em}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+button{font:inherit;color:inherit;cursor:pointer}
+.tab,.chip{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:999px}
+.tab{font-weight:600}
+.tab[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip{padding:6px 12px;font-size:.92rem}
+.chip[aria-pressed="true"]{background:var(--acc);color:#1c1200;border-color:var(--acc)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 10px}
+.q{font-size:1.2rem;font-weight:600}
+.score{color:var(--mut)}
+.mapwrap{background:var(--sea);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+svg{display:block;width:100%;height:auto;max-height:74vh}
+.land{fill:var(--land)}
+.dot{fill:var(--acc)}
+.hit{fill:transparent;cursor:pointer}
+.dot.ok{fill:#3fbf7f}.dot.ko{fill:#e5584c}
+.dot.target{fill:#fff}
+.lab{fill:#fff;font-weight:600;paint-order:stroke;stroke:#0b1f2c;stroke-linejoin:round}
+.panel{margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.city{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);text-align:left;display:flex;flex-direction:column}
+.city small{color:var(--mut)}
+.city.seen{border-color:var(--ok)}
+.city.sel{background:var(--fg);color:var(--bg)}.city.sel small{color:var(--bg)}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.opt{padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);text-align:left}
+.opt.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.opt.ko{background:var(--ko);color:#fff;border-color:var(--ko)}
+.fb{padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid var(--line);margin-top:10px}
+.fb.ok{border-color:var(--ok)}.fb.ko{border-color:var(--ko)}
+.next{margin-top:10px;padding:10px 18px;border-radius:10px;border:0;background:var(--acc);color:#1c1200;font-weight:600}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+@media (max-width:520px){.opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Les grandes métropoles du monde</h1>
+<div class="row" id="tabs"><button class="tab" data-t="learn">1. Apprendre</button><button class="tab" data-t="prac">2. Pratiquer</button></div>
+<div class="row" id="regs" aria-label="Région"></div>
+<div class="row" id="subs" hidden><button class="chip" data-s="find">Trouver sur la carte</button><button class="chip" data-s="name">Nommer la ville</button></div>
+<div class="bar"><div class="q" id="q"></div><div class="score" id="score"></div></div>
+<div class="mapwrap"><svg id="map" role="img" aria-label="Carte du monde avec les métropoles"></svg></div>
+<div class="panel" id="panel"></div>
+</main>
+<script>
+var C=[["Tokyo","Japon",139.7,35.7],["Delhi","Inde",77.2,28.6],["Shanghai","Chine",121.5,31.2],["São Paulo","Brésil",-46.6,-23.5],["Mexico","Mexique",-99.1,19.4],["Le Caire","Égypte",31.2,30],["Mumbai","Inde",72.9,19.1],["Pékin","Chine",116.4,39.9],["Dacca","Bangladesh",90.4,23.8],["Osaka","Japon",135.5,34.7],["New York","États-Unis",-74,40.7],["Karachi","Pakistan",67,24.9],["Buenos Aires","Argentine",-58.4,-34.6],["Istanbul","Turquie",29,41],["Lagos","Nigeria",3.4,6.5],["Kinshasa","RD Congo",15.3,-4.3],["Manille","Philippines",121,14.6],["Los Angeles","États-Unis",-118.2,34],["Moscou","Russie",37.6,55.8],["Paris","France",2.35,48.9],["Londres","Royaume-Uni",-0.1,51.5],["Jakarta","Indonésie",106.8,-6.2],["Bangkok","Thaïlande",100.5,13.8],["Séoul","Corée du Sud",127,37.6],["Lima","Pérou",-77,-12],["Johannesburg","Afrique du Sud",28,-26.2],["Sydney","Australie",151.2,-33.9],["Téhéran","Iran",51.4,35.7],["Bogota","Colombie",-74.1,4.7],["Riyad","Arabie saoudite",46.7,24.7],["Nairobi","Kenya",36.8,-1.3],["Toronto","Canada",-79.4,43.7],["Singapour","Singapour",103.8,1.35],["Madrid","Espagne",-3.7,40.4],["Rio de Janeiro","Brésil",-43.2,-22.9],["Chicago","États-Unis",-87.6,41.9],["Hô Chi Minh-Ville","Viêt Nam",106.7,10.8],["Le Cap","Afrique du Sud",18.4,-33.9],["Berlin","Allemagne",13.4,52.5],["Rome","Italie",12.5,41.9],["Dubaï","Émirats arabes unis",55.3,25.2],["Hong Kong","Chine",114.2,22.3],["Santiago","Chili",-70.7,-33.4],["San Francisco","États-Unis",-122.4,37.8]];
+// région : clé, nom, viewBox (x=lon+180, y=90-lat), villes
+var R=[["monde","Monde",[0,12,360,136],null],
+["europe","Europe",[165,28,65,32],["Paris","Londres","Madrid","Moscou","Istanbul","Berlin","Rome"]],
+["afrique","Afrique",[140,52,115,76],["Le Caire","Lagos","Kinshasa","Nairobi","Johannesburg","Le Cap"]],
+["asie","Asie et Océanie",[220,30,120,100],["Téhéran","Riyad","Delhi","Mumbai","Karachi","Dacca","Pékin","Shanghai","Tokyo","Osaka","Séoul","Manille","Bangkok","Hô Chi Minh-Ville","Singapour","Jakarta","Sydney","Dubaï","Hong Kong"]],
+["amn","Amérique du Nord",[45,30,75,50],["New York","Los Angeles","San Francisco","Chicago","Toronto","Mexico"]],
+["ams","Amérique du Sud",[90,70,65,70],["São Paulo","Rio de Janeiro","Buenos Aires","Lima","Bogota","Santiago"]]];
+var LAND=[
+"-168,66 -162,70 -140,70 -128,70 -115,68 -95,72 -85,69 -82,66 -93,62 -94,58 -88,56 -80,52 -79,56 -77,62 -70,60 -62,58 -56,52 -64,48 -66,45 -70,42 -74,40 -76,35 -81,31 -80,26 -83,29 -89,30 -94,29 -97,26 -97,21 -94,18 -90,21 -87,21 -88,16 -83,15 -83,10 -79,9 -78,8 -85,10 -88,13 -92,15 -97,16 -105,20 -106,23 -110,27 -113,31 -115,30 -117,33 -121,35 -124,40 -124,47 -127,51 -133,56 -140,60 -150,60 -158,57 -164,60",
+"-78,8 -72,12 -62,11 -52,5 -50,0 -44,-2 -35,-6 -38,-13 -41,-22 -48,-26 -53,-34 -58,-38 -62,-39 -65,-45 -68,-50 -69,-54 -73,-52 -74,-45 -73,-37 -71,-30 -70,-18 -76,-14 -81,-6 -80,-1 -77,3",
+"-9,37 -9,43 -2,43 -1,46 -4,48 2,51 5,53 8,54 8,57 11,58 12,56 14,54 21,55 24,59 30,60 25,65 22,66 18,63 17,60 13,56 11,59 5,60 5,62 14,67 20,70 30,71 40,67 44,68 60,69 70,73 100,78 115,74 140,72 160,70 180,68 180,65 170,60 163,58 156,51 156,58 143,59 140,54 141,48 135,43 129,41 128,38 126,35 126,37 121,40 118,38 122,37 120,32 122,30 120,25 110,21 108,16 109,12 105,9 103,12 100,13 99,8 103,2 100,3 98,8 97,16 94,17 92,22 88,22 80,15 77,8 73,17 72,21 68,23 62,25 57,26 56,27 52,28 50,30 48,30 51,25 56,25 60,22 55,17 44,13 43,16 35,28 33,30 35,36 30,37 27,37 26,40 29,41 24,40 23,38 20,40 19,42 13,45 16,42 18,40 16,38 12,41 9,44 3,43 0,39 -2,37 -6,36",
+"-17,21 -16,28 -10,30 -6,36 10,37 11,33 20,31 32,31 34,28 37,22 43,12 51,12 47,5 41,-3 40,-10 40,-15 35,-24 32,-29 27,-34 20,-35 18,-32 12,-18 13,-10 9,-1 9,4 4,6 -8,4 -13,8 -17,14",
+"44,-25 48,-24 50,-15 47,-13",
+"114,-22 122,-18 130,-12 136,-12 136,-15 142,-11 146,-19 153,-26 150,-37 144,-38 138,-35 131,-31 124,-33 115,-34",
+"-55,60 -45,60 -20,70 -20,82 -60,82 -70,77",
+"-5,50 1,51 2,53 -2,56 -2,58 -5,58 -6,55 -3,54 -5,52","-10,52 -6,52 -6,55 -10,54",
+"130,33 135,34 140,35 142,40 140,41 139,38 135,36 132,35","140,42 145,43 142,45",
+"95,5 98,4 106,-6 104,-6 100,-2","106,-6 114,-8 106,-7","109,1 117,7 119,1 116,-4 110,-3","120,18 122,18 124,10 126,7 122,8 120,14","131,-1 141,-3 150,-10 141,-9 135,-4"];
+var NS="http://www.w3.org/2000/svg",svg=document.getElementById("map"),q=document.getElementById("q"),sc=document.getElementById("score"),panel=document.getElementById("panel");
+var tab="learn",sub="find",reg=0,st={},show={},sel=-1,seen={},queue=[],cur=-1,score=0,total=0,done=false;
+function el(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e}
+function members(){var l=R[reg][3];return C.map(function(_,i){return i}).filter(function(i){return !l||l.indexOf(C[i][0])>-1})}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function draw(){
+svg.innerHTML="";var vb=R[reg][2],w=vb[2],r=w/130,fs=w/68;
+svg.setAttribute("viewBox",vb.join(" "));
+for(var lo=-180;lo<=180;lo+=30)el("line",{x1:lo+180,x2:lo+180,y1:0,y2:180,stroke:"rgba(255,255,255,.12)","stroke-width":w/900});
+for(var la=-90;la<=90;la+=30)el("line",{x1:0,x2:360,y1:90-la,y2:90-la,stroke:"rgba(255,255,255,.12)","stroke-width":w/900});
+LAND.forEach(function(s){el("polygon",{"class":"land",points:s.split(" ").map(function(p){var a=p.split(",");return (+a[0]+180)+","+(90-a[1])}).join(" ")})});
+var m=members();
+m.forEach(function(i){var c=C[i],x=c[2]+180,y=90-c[3];
+el("circle",{"class":"dot "+(st[i]||""),cx:x,cy:y,r:r,stroke:"#fff","stroke-width":r/3.5});
+if(show[i]){var t=el("text",{"class":"lab",x:x+r*1.7,y:y+fs*.33,"font-size":fs,"stroke-width":fs/4});t.textContent=c[0]}});
+m.forEach(function(i){var c=C[i];var h=el("circle",{"class":"hit",cx:c[2]+180,cy:90-c[3],r:r*2.6});h.addEventListener("click",function(){onDot(i)})})}
+function setBtns(){
+document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.t===tab)});
+document.querySelectorAll(".chip[data-s]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.s===sub)});
+document.querySelectorAll(".chip[data-r]").forEach(function(b){b.setAttribute("aria-pressed",+b.dataset.r===reg)});
+document.getElementById("subs").hidden=tab!=="prac"}
+function restart(){setBtns();st={};show={};sel=-1;done=false;
+if(tab==="learn"){sc.textContent="";q.textContent="Touche une ville, sur la carte ou dans la liste, pour la retenir";learnShow();draw();renderLearn()}
+else{queue=shuffle(members());score=0;total=0;nextQ()}}
+function learnShow(){show={};st={};if(reg>0)members().forEach(function(i){show[i]=1});if(sel>-1){show[sel]=1;st[sel]="target"}}
+function renderLearn(){var m=members(),n=m.filter(function(i){return seen[i]}).length;
+panel.innerHTML='<div class="grid">'+m.map(function(i){return '<button class="city'+(seen[i]?" seen":"")+(i===sel?" sel":"")+'" data-i="'+i+'">'+(seen[i]?"✓ ":"")+C[i][0]+'<small>'+C[i][1]+'</small></button>'}).join("")+'</div><div class="fb">'+n+' / '+m.length+' villes vues dans cette région. <button class="next" id="go">Passer à la pratique</button></div>';
+panel.querySelectorAll(".city").forEach(function(b){b.onclick=function(){onDot(+b.dataset.i)}});
+document.getElementById("go").onclick=function(){tab="prac";restart()}}
+function onDot(i){
+if(tab==="learn"){sel=i;seen[i]=1;learnShow();draw();renderLearn();return}
+if(sub!=="find"||done)return;
+var ok=i===cur;st[cur]="ok";show[cur]=1;if(!ok){st[i]="ko";show[i]=1}draw();
+fin(ok,ok?"Bien vu ! "+C[cur][0]+" est en "+C[cur][1]+".":"Raté : tu as touché "+C[i][0]+". "+C[cur][0]+" (en vert) est en "+C[cur][1]+".")}
+function nextQ(){st={};show={};done=false;
+if(!queue.length){draw();q.textContent="Terminé !";panel.innerHTML='<div class="fb ok">Score final : '+score+' / '+total+'. <button class="next" id="again">Rejouer</button> <button class="next" id="back">Revoir le cours</button></div>';
+document.getElementById("again").onclick=restart;document.getElementById("back").onclick=function(){tab="learn";restart()};return}
+cur=queue.pop();sc.textContent="Score : "+score+" / "+total;panel.innerHTML="";
+if(sub==="find"){q.textContent="Où se trouve "+C[cur][0]+" ?";draw()}
+else{q.textContent="Quelle est cette ville ?";st[cur]="target";draw();
+var all=C.map(function(_,i){return i}).filter(function(i){return i!==cur}),m=members().filter(function(i){return i!==cur}),pool=m.length>=3?m:all,o=[cur].concat(shuffle(pool).slice(0,3));
+panel.innerHTML='<div class="opts"></div>';
+shuffle(o).forEach(function(i){var b=document.createElement("button");b.className="opt";b.textContent=C[i][0];b.onclick=function(){answer(i,b)};panel.firstChild.appendChild(b)})}}
+function answer(i,b){if(done)return;var ok=i===cur;b.classList.add(ok?"ok":"ko");
+panel.querySelectorAll(".opt").forEach(function(o){if(o.textContent===C[cur][0])o.classList.add("ok");o.disabled=true});
+st[cur]=ok?"ok":"ko";show[cur]=1;draw();
+fin(ok,ok?"Exact : "+C[cur][0]+", "+C[cur][1]+".":"C’était "+C[cur][0]+", en "+C[cur][1]+".")}
+function fin(ok,msg){done=true;total++;if(ok)score++;sc.textContent="Score : "+score+" / "+total;
+var f=document.createElement("div");f.className="fb "+(ok?"ok":"ko");f.innerHTML=msg+'<br><button class="next" id="nx">Suivante</button>';
+panel.appendChild(f);document.getElementById("nx").onclick=nextQ}
+document.getElementById("regs").innerHTML=R.map(function(r,i){return '<button class="chip" data-r="'+i+'">'+r[1]+'</button>'}).join("");
+document.querySelectorAll(".chip[data-r]").forEach(function(b){b.onclick=function(){reg=+b.dataset.r;restart()}});
+document.querySelectorAll(".tab").forEach(function(b){b.onclick=function(){tab=b.dataset.t;restart()}});
+document.querySelectorAll(".chip[data-s]").forEach(function(b){b.onclick=function(){sub=b.dataset.s;restart()}});
+restart();
+</script>
+</body>
 </html>
